@@ -43,6 +43,7 @@ class AddProfileModal extends HookConsumerWidget {
           : switch (currentWidget) {
               AddProfilePages.options => const AddProfileOptions(),
               AddProfilePages.manual => const AddProfileManual(),
+              AddProfilePages.xboard => const AddProfileXBoard(),
             },
     );
   }
@@ -242,6 +243,98 @@ class AddProfileManual extends HookConsumerWidget {
             ),
           ),
           // const Gap(16),
+        ],
+      ),
+    );
+  }
+}
+
+class AddProfileXBoard extends HookConsumerWidget {
+  const AddProfileXBoard({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final formKey = useMemoized(() => GlobalKey<FormState>());
+    final addressController = useTextEditingController();
+    final emailController = useTextEditingController();
+    final passwordController = useTextEditingController();
+
+    void submit() {
+      if (!formKey.currentState!.validate()) return;
+      ref
+          .read(addProfileNotifierProvider.notifier)
+          .addXBoard(
+            baseUrl: addressController.text.trim(),
+            email: emailController.text.trim(),
+            password: passwordController.text,
+          );
+    }
+
+    return Form(
+      key: formKey,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Padding(
+            padding: const EdgeInsetsDirectional.fromSTEB(16, 8, 8, 12),
+            child: Row(
+              children: [
+                Expanded(child: Text('XBoard', style: theme.textTheme.headlineMedium)),
+                IconButton(
+                  tooltip: 'Back',
+                  icon: const Icon(Icons.close),
+                  onPressed: () => ref.read(addProfilePageNotifierProvider.notifier).goOptions(),
+                ),
+              ],
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: CustomTextFormField(
+              controller: addressController,
+              maxLines: 1,
+              label: 'XBoard address',
+              hint: 'https://panel.example.com',
+              validator: (value) => (value == null || !isUrl(value)) ? 'Enter a valid address.' : null,
+            ),
+          ),
+          const Gap(12),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: CustomTextFormField(
+              controller: emailController,
+              maxLines: 1,
+              label: 'Email',
+              hint: 'name@example.com',
+              validator: (value) => (value?.trim().isEmpty ?? true) ? 'Enter your email.' : null,
+            ),
+          ),
+          const Gap(12),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: TextFormField(
+              controller: passwordController,
+              obscureText: true,
+              enableSuggestions: false,
+              autocorrect: false,
+              textInputAction: TextInputAction.done,
+              decoration: const InputDecoration(labelText: 'Password'),
+              validator: (value) => (value?.isEmpty ?? true) ? 'Enter your password.' : null,
+              onFieldSubmitted: (_) => submit(),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+            child: SizedBox(
+              width: double.infinity,
+              child: FilledButton.icon(
+                icon: const Icon(Icons.download_outlined),
+                label: const Text('Import subscription'),
+                onPressed: submit,
+              ),
+            ),
+          ),
         ],
       ),
     );

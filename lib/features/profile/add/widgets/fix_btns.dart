@@ -70,6 +70,14 @@ class FixBtns extends ConsumerWidget {
         ],
         const Gap(AddProfileModalConst.fixBtnsGap),
         FixBtn(
+          key: const ValueKey('add_from_xboard_button'),
+          height: height,
+          title: 'XBoard',
+          icon: Icons.account_circle_outlined,
+          onTap: () => ref.read(addProfilePageNotifierProvider.notifier).goXBoard(),
+        ),
+        const Gap(AddProfileModalConst.fixBtnsGap),
+        FixBtn(
           key: const ValueKey('add_manually_button'),
           height: height,
           title: t.common.manually,

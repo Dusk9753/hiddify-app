@@ -13,6 +13,7 @@ import 'package:hiddify/features/connection/notifier/connection_notifier.dart';
 import 'package:hiddify/features/profile/add/model/free_profiles_model.dart';
 import 'package:hiddify/features/profile/data/profile_data_providers.dart';
 import 'package:hiddify/features/profile/data/profile_repository.dart';
+import 'package:hiddify/features/profile/data/xboard_client.dart';
 import 'package:hiddify/features/profile/model/profile_entity.dart';
 import 'package:hiddify/features/profile/model/profile_failure.dart';
 import 'package:hiddify/features/profile/notifier/active_profile_notifier.dart';
@@ -112,6 +113,19 @@ class AddProfileNotifier extends _$AddProfileNotifier with AppLogger {
           .run();
     });
   }
+
+  Future<void> addXBoard({required String baseUrl, required String email, required String password}) async {
+    if (state.isLoading) return;
+    state = const AsyncLoading();
+    state = await AsyncValue.guard(() async {
+      final client = XBoardClient(transport: DioXBoardTransport(ref.read(httpClientProvider)));
+      final subscriptionUrl = await client.fetchSubscribeUrl(baseUrl: baseUrl, email: email, password: password);
+      return await _profilesRepo
+          .upsertRemote(subscriptionUrl, cancelToken: _cancelToken = CancelToken())
+          .match((err) => throw err, (_) => unit)
+          .run();
+    });
+  }
 }
 
 @riverpod
@@ -181,9 +195,10 @@ class AddProfilePageNotifier extends _$AddProfilePageNotifier {
 
   void goOptions() => state = AddProfilePages.options;
   void goManual() => state = AddProfilePages.manual;
+  void goXBoard() => state = AddProfilePages.xboard;
 }
 
-enum AddProfilePages { options, manual }
+enum AddProfilePages { options, manual, xboard }
 
 @riverpod
 class FreeProfilesNotifier extends _$FreeProfilesNotifier {
